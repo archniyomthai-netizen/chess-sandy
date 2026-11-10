@@ -1,0 +1,1562 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>เว็บแอปพลิเคชันสอนเล่นหมากรุกสากล (Chess Tutorial &amp; Puzzle Game)</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --surface-subtle: #f8fafc;
+      --border: #e2e8f0;
+      --ink: #0f172a;
+      --muted: #475569;
+      --brand: #1e293b;
+      --brand-accent: #2563eb;
+      --brand-accent-hover: #1d4ed8;
+      --brand-ink: #ffffff;
+      --success: #15803d;
+      --success-bg: #dcfce7;
+      --success-border: #86efac;
+      --danger: #b91c1c;
+      --danger-bg: #fee2e2;
+      --danger-border: #fca5a5;
+      --warning: #b45309;
+      --warning-bg: #fef3c7;
+
+      /* Chessboard palette */
+      --sq-light: #f1f5f9;
+      --sq-dark: #94a3b8;
+      --sq-selected: #fde047;
+      --sq-legal-dot: rgba(37, 99, 235, 0.78);
+      --sq-legal-bg: rgba(37, 99, 235, 0.16);
+      --sq-capture-ring: rgba(220, 38, 38, 0.82);
+      --sq-last-move: rgba(250, 204, 21, 0.35);
+
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 4px 10px -3px rgba(15, 23, 42, 0.04);
+      --font: "Noto Sans Thai", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Header */
+    .app-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+    }
+
+    .header-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: var(--brand);
+      color: var(--brand-ink);
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-subtitle {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Main Layout */
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    @media (min-width: 920px) {
+      .container {
+        grid-template-columns: 380px 1fr;
+        align-items: start;
+      }
+    }
+
+    /* Lesson Navigation Sidebar / Panel */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 20px;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin: 0 0 12px;
+    }
+
+    .lesson-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .lesson-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .lesson-btn:hover {
+      border-color: #cbd5e1;
+      background: var(--surface-subtle);
+    }
+
+    .lesson-btn:focus-visible {
+      outline: 2px solid var(--brand-accent);
+      outline-offset: 2px;
+    }
+
+    .lesson-btn.active {
+      background: #eff6ff;
+      border-color: var(--brand-accent);
+      box-shadow: 0 0 0 1px var(--brand-accent);
+    }
+
+    .lesson-piece-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      font-size: 23px;
+      flex-shrink: 0;
+    }
+
+    .lesson-btn.active .lesson-piece-icon {
+      background: var(--brand-accent);
+      color: #ffffff;
+      border-color: var(--brand-accent);
+    }
+
+    .lesson-btn-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .lesson-btn-title {
+      font-weight: 600;
+      font-size: 15px;
+      display: block;
+    }
+
+    .lesson-btn-desc {
+      font-size: 12px;
+      color: var(--muted);
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lesson-state-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--surface-subtle);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .lesson-state-pill.done {
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: var(--success-border);
+    }
+
+    /* Lesson Explanation & Challenge Info Card */
+    .lesson-details {
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+    }
+
+    .lesson-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .lesson-current-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--brand-accent);
+      background: #eff6ff;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .lesson-title {
+      margin: 4px 0 8px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .lesson-rule-box {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-size: 14px;
+      color: var(--ink);
+      margin-bottom: 14px;
+    }
+
+    .lesson-rule-box strong {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .challenge-box {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+
+    .challenge-box-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--warning);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .challenge-box-text {
+      margin: 0;
+      font-weight: 600;
+      color: #78350f;
+    }
+
+    /* Right Column: Board Area */
+    .board-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Status Bar above Board */
+    .status-bar {
+      width: 100%;
+      max-width: 560px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-value.highlight-moves {
+      color: var(--brand-accent);
+    }
+
+    .stat-value.low-moves {
+      color: var(--danger);
+    }
+
+    /* Interactive Feedback Banner (Success / Retry / Instruction) */
+    .feedback-banner {
+      width: 100%;
+      max-width: 560px;
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      background: var(--surface-subtle);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 62px;
+    }
+
+    .feedback-banner.status-playing {
+      background: var(--surface-subtle);
+      border-color: var(--border);
+    }
+
+    .feedback-banner.status-won {
+      background: var(--success-bg);
+      border-color: var(--success-border);
+      color: #14532d;
+    }
+
+    .feedback-banner.status-lost {
+      background: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: #7f1d1d;
+    }
+
+    .feedback-message {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .feedback-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--brand-accent);
+      outline-offset: 2px;
+    }
+
+    .btn-primary {
+      background: var(--brand-accent);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--brand-accent-hover);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #ffffff;
+    }
+
+    .btn-success:hover {
+      background: #166534;
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--ink);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-subtle);
+      border-color: #cbd5e1;
+    }
+
+    /* 8x8 Chessboard Wrapper */
+    .board-frame {
+      width: 100%;
+      max-width: 560px;
+      background: var(--brand);
+      padding: 14px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      user-select: none;
+    }
+
+    .chessboard {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      border-radius: 6px;
+      overflow: hidden;
+      border: 2px solid #334155;
+    }
+
+    .square {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      transition: background-color 0.12s ease;
+    }
+
+    .square.light {
+      background-color: var(--sq-light);
+    }
+
+    .square.dark {
+      background-color: var(--sq-dark);
+    }
+
+    .square.last-move {
+      background-image: linear-gradient(var(--sq-last-move), var(--sq-last-move));
+    }
+
+    .square.selected {
+      background-color: var(--sq-selected) !important;
+    }
+
+    .square.legal-move {
+      background-image: linear-gradient(var(--sq-legal-bg), var(--sq-legal-bg));
+    }
+
+    .square:focus-visible {
+      outline: 3px solid var(--brand-accent);
+      outline-offset: -3px;
+      z-index: 2;
+    }
+
+    /* Rank & File Coordinates inside outer squares */
+    .coord-rank,
+    .coord-file {
+      position: absolute;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .coord-rank {
+      top: 4px;
+      left: 5px;
+    }
+
+    .coord-file {
+      bottom: 3px;
+      right: 5px;
+    }
+
+    .square.light .coord-rank,
+    .square.light .coord-file {
+      color: #475569;
+    }
+
+    .square.dark .coord-rank,
+    .square.dark .coord-file {
+      color: #f8fafc;
+    }
+
+    /* Legal Move Indicator Dots & Capture Rings */
+    .legal-dot {
+      width: 28%;
+      height: 28%;
+      border-radius: 50%;
+      background-color: var(--sq-legal-dot);
+      pointer-events: none;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.55);
+    }
+
+    .capture-ring {
+      position: absolute;
+      inset: 6%;
+      border-radius: 50%;
+      border: 4px solid var(--sq-capture-ring);
+      pointer-events: none;
+      animation: pulse-ring 1.3s infinite ease-in-out;
+    }
+
+    @keyframes pulse-ring {
+      0%, 100% { transform: scale(0.96); opacity: 0.9; }
+      50% { transform: scale(1.03); opacity: 1; }
+    }
+
+    /* Piece Styling */
+    .piece {
+      width: 78%;
+      height: 78%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      position: relative;
+      z-index: 1;
+      transition: transform 0.14s ease;
+    }
+
+    .square:hover .piece {
+      transform: translateY(-2px);
+    }
+
+    .piece svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* Target Badge on the enemy goal piece */
+    .target-tag {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 999px;
+      line-height: 1.2;
+      pointer-events: none;
+      z-index: 3;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Legend below the board */
+    .board-legend {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .legend-swatch.selected {
+      background: var(--sq-selected);
+      border: 1px solid #ca8a04;
+      border-radius: 4px;
+    }
+
+    .legend-swatch.legal {
+      background: var(--sq-legal-dot);
+    }
+
+    .legend-swatch.capture {
+      border: 3px solid var(--sq-capture-ring);
+      background: transparent;
+    }
+
+    @media (max-width: 520px) {
+      .container {
+        padding: 14px;
+      }
+      .board-frame {
+        padding: 8px;
+      }
+      .target-tag {
+        font-size: 8px;
+        padding: 1px 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <div class="brand-icon" aria-hidden="true">♞</div>
+        <div>
+          <h1 class="brand-title">Chess Tutorial &amp; Puzzle Game</h1>
+          <p class="brand-subtitle">เรียนรู้วิธีเดินหมากรุกสากลทีละตัวหมาก พร้อมโจทย์ท้าทายจำกัดตาเดินบนกระดาน 8×8</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Left Column: Step-by-Step Lesson Selector & Current Lesson Guide -->
+    <section class="panel" aria-label="เมนูเลือกบทเรียนและคำอธิบาย">
+      <h2 class="section-label">บทเรียนฝึกหัด 5 ตัวหมากสากล</h2>
+      <div class="lesson-menu" id="lessonMenu" role="tablist" aria-label="เลือกบทเรียนหมากรุกสากล"></div>
+
+      <div class="lesson-details" id="lessonDetails">
+        <div class="lesson-header-row">
+          <span class="lesson-current-badge" id="lessonStageBadge">ด่านที่ 1 / 5</span>
+        </div>
+        <h3 class="lesson-title" id="lessonTitle">1. เบี้ย (Pawn)</h3>
+        <div class="lesson-rule-box">
+          <strong>วิธีการเดินของตัวหมาก</strong>
+          <span id="lessonRuleText"></span>
+        </div>
+        <div class="challenge-box">
+          <span class="challenge-box-label">โจทย์ท้าทายจำกัดตาเดิน</span>
+          <p class="challenge-box-text" id="lessonChallengeText"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Status Bar, Feedback Controls & 8x8 Chessboard -->
+    <section class="panel board-panel" aria-label="กระดานหมากรุกและสถานะการฝึก">
+      <div class="status-bar">
+        <div class="stat-card">
+          <span class="stat-label">สถานะด่านปัจจุบัน</span>
+          <span class="stat-value" id="currentStageStat">1 / 5 (เบี้ย)</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">ตาเดินที่เหลือ</span>
+          <span class="stat-value highlight-moves" id="movesRemainingStat">2 ตา</span>
+        </div>
+      </div>
+
+      <div class="feedback-banner status-playing" id="feedbackBanner" role="status" aria-live="polite">
+        <p class="feedback-message" id="feedbackMessage">คลิกที่หมากสีขาวของคุณเพื่อดูช่องที่สามารถเดินไปได้</p>
+        <div class="feedback-actions" id="feedbackActions">
+          <button type="button" class="btn btn-secondary" id="retryBtn">ลองใหม่ (Retry)</button>
+        </div>
+      </div>
+
+      <div class="board-frame">
+        <div class="chessboard" id="chessboard" role="grid" aria-label="กระดานหมากรุกสากลขนาด 8 คูณ 8"></div>
+      </div>
+
+      <div class="board-legend" aria-label="คำอธิบายสัญลักษณ์บนกระดาน">
+        <span class="legend-item">
+          <span class="legend-swatch selected"></span> ตัวหมากที่เลือก
+        </span>
+        <span class="legend-item">
+          <span class="legend-swatch legal"></span> ช่องที่เดินไปได้ (Legal Move)
+        </span>
+        <span class="legend-item">
+          <span class="legend-swatch capture"></span> เป้าหมายที่กินได้
+        </span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // Clean vector SVG icons for each chess piece (White player piece, Black target piece, or Friendly blocker)
+      const PIECE_SVGS = {
+        pawn: (fill, stroke) => `
+          <svg viewBox="0 0 45 45" aria-hidden="true">
+            <path d="M 22.5,9 C 19.5,9 17,11.5 17,14.5 C 17,16.8 18.4,18.7 20.4,19.5 C 17.5,21 16,24 16,27.5 C 16,29.5 17,31 17,31 L 14,34.5 L 31,34.5 L 28,31 C 28,31 29,29.5 29,27.5 C 29,24 27.5,21 24.6,19.5 C 26.6,18.7 28,16.8 28,14.5 C 28,11.5 25.5,9 22.5,9 z"
+              fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round" />
+            <path d="M 11.5,37 L 33.5,37" stroke="${stroke}" stroke-width="2.8" stroke-linecap="round" />
+          </svg>`,
+        rook: (fill, stroke) => `
+          <svg viewBox="0 0 45 45" aria-hidden="true">
+            <g fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z" />
+              <path d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z" />
+              <path d="M 14,29.5 L 14,16.5 L 31,16.5 L 31,29.5 L 14,29.5 z" />
+              <path d="M 14,16.5 L 11,14 L 34,14 L 31,16.5 L 14,16.5 z" />
+              <path d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14" />
+              <path d="M 12,32 L 14,29.5 L 31,29.5 L 33,32 L 12,32 z" />
+            </g>
+          </svg>`,
+        knight: (fill, stroke) => `
+          <svg viewBox="0 0 45 45" aria-hidden="true">
+            <g fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18" />
+              <path d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10" />
+              <circle cx="15.5" cy="14.5" r="1.2" fill="${stroke}" />
+            </g>
+          </svg>`,
+        bishop: (fill, stroke) => `
+          <svg viewBox="0 0 45 45" aria-hidden="true">
+            <g fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z" />
+              <path d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z" />
+              <circle cx="22.5" cy="8" r="2.2" />
+            </g>
+          </svg>`,
+        queen: (fill, stroke) => `
+          <svg viewBox="0 0 45 45" aria-hidden="true">
+            <g fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38.5,13.5 L 31,25 L 30.7,10.9 L 25.5,24.5 L 22.5,10 L 19.5,24.5 L 14.3,10.9 L 14,25 L 6.5,13.5 L 9,26 z" />
+              <path d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 11,36 11,36 C 9.5,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z" />
+              <circle cx="6" cy="12" r="1.8" />
+              <circle cx="14" cy="9" r="1.8" />
+              <circle cx="22.5" cy="8" r="1.8" />
+              <circle cx="31" cy="9" r="1.8" />
+              <circle cx="39" cy="12" r="1.8" />
+            </g>
+          </svg>`,
+        king: (fill, stroke) => `
+          <svg viewBox="0 0 45 45" aria-hidden="true">
+            <g fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M 22.5,11.63 L 22.5,6" />
+              <path d="M 20,8 L 25,8" />
+              <path d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25" />
+              <path d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z" />
+              <path d="M 11.5,30 C 17,27 27,27 32.5,30" />
+              <path d="M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5" />
+              <path d="M 11.5,37 C 17,34 27,34 32.5,37" />
+            </g>
+          </svg>`
+      };
+
+      // The 5 step-by-step lessons, each with 5 randomized move-limited challenges targeting the enemy King
+      // Coordinates: row 0 = rank 8 (top), row 7 = rank 1 (bottom); col 0 = file a (left), col 7 = file h (right)
+      const LESSONS = [
+        {
+          id: "pawn",
+          number: 1,
+          name: "เบี้ย (Pawn)",
+          shortName: "เบี้ย",
+          icon: "♟",
+          pieceType: "pawn",
+          ruleSummary: "เดินตรงไปข้างหน้าทีละ 1 ช่อง (พิเศษ: หากอยู่ในแถวเริ่มต้น แถวที่ 2 สามารถเลือกเดินตรง 2 ช่องได้ในตาแรก) และต้องกินหมากฝ่ายตรงข้ามในแนวเฉียงข้างหน้า 1 ช่องเท่านั้น",
+          puzzles: [
+            {
+              challengeDescription: "แบบที่ 1/5: ใช้เบี้ยขาวที่ช่อง e2 เดินขึ้นไปกินคิงเป้าหมายที่ช่อง d5 ภายใน 2 ตาเดิน (ก้าวแรกเดิน 2 ช่องไปที่ e4 แล้วกินเฉียงที่ d5)",
+              maxMoves: 2,
+              playerStart: { row: 6, col: 4 }, // e2
+              targetPos: { row: 3, col: 3, type: "king" }, // d5
+              obstacles: []
+            },
+            {
+              challengeDescription: "แบบที่ 2/5: ใช้เบี้ยขาวที่ช่อง b2 เดินขึ้นไปกินคิงเป้าหมายที่ช่อง c5 ภายใน 2 ตาเดิน (ก้าวแรกเดิน 2 ช่องไปที่ b4 แล้วกินเฉียงที่ c5)",
+              maxMoves: 2,
+              playerStart: { row: 6, col: 1 }, // b2
+              targetPos: { row: 3, col: 2, type: "king" }, // c5
+              obstacles: []
+            },
+            {
+              challengeDescription: "แบบที่ 3/5: ใช้เบี้ยขาวที่ช่อง g2 เดินขึ้นไปกินคิงเป้าหมายที่ช่อง f5 ภายใน 2 ตาเดิน (ก้าวแรกเดิน 2 ช่องไปที่ g4 แล้วกินเฉียงที่ f5)",
+              maxMoves: 2,
+              playerStart: { row: 6, col: 6 }, // g2
+              targetPos: { row: 3, col: 5, type: "king" }, // f5
+              obstacles: []
+            },
+            {
+              challengeDescription: "แบบที่ 4/5: ใช้เบี้ยขาวที่ช่อง d3 เดินหน้าทีละช่องไปกินคิงเป้าหมายที่ช่อง e5 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 5, col: 3 }, // d3
+              targetPos: { row: 3, col: 4, type: "king" }, // e5
+              obstacles: []
+            },
+            {
+              challengeDescription: "แบบที่ 5/5: ใช้เบี้ยขาวที่ช่อง c2 เดินรุกคืบไปกินคิงเป้าหมายที่ช่อง b6 ภายใน 3 ตาเดิน",
+              maxMoves: 3,
+              playerStart: { row: 6, col: 2 }, // c2
+              targetPos: { row: 2, col: 1, type: "king" }, // b6
+              obstacles: []
+            }
+          ]
+        },
+        {
+          id: "rook",
+          number: 2,
+          name: "เรือ (Rook)",
+          shortName: "เรือ",
+          icon: "♜",
+          pieceType: "rook",
+          ruleSummary: "เดินตรงในแนวตั้งหรือแนวนอนได้ไกลหลายช่องตามต้องการ แต่ไม่สามารถกระโดดข้ามตัวหมากที่ขวางทางอยู่ได้",
+          puzzles: [
+            {
+              challengeDescription: "แบบที่ 1/5: ใช้เรือขาวที่ช่อง b2 เดินอ้อมสิ่งกีดขวางไปกินคิงเป้าหมายที่ช่อง g7 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 6, col: 1 }, // b2
+              targetPos: { row: 1, col: 6, type: "king" }, // g7
+              obstacles: [
+                { row: 1, col: 1, type: "pawn" } // b7
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 2/5: ใช้เรือขาวที่ช่อง a1 เดินอ้อมสิ่งกีดขวางไปกินคิงเป้าหมายที่ช่อง f6 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 7, col: 0 }, // a1
+              targetPos: { row: 2, col: 5, type: "king" }, // f6
+              obstacles: [
+                { row: 2, col: 0, type: "pawn" } // a6
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 3/5: ใช้เรือขาวที่ช่อง h2 เดินอ้อมสิ่งกีดขวางไปกินคิงเป้าหมายที่ช่อง c7 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 6, col: 7 }, // h2
+              targetPos: { row: 1, col: 2, type: "king" }, // c7
+              obstacles: [
+                { row: 6, col: 2, type: "pawn" } // c2
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 4/5: ใช้เรือขาวที่ช่อง d1 เดินอ้อมสิ่งกีดขวางไปกินคิงเป้าหมายที่ช่อง g5 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 7, col: 3 }, // d1
+              targetPos: { row: 3, col: 6, type: "king" }, // g5
+              obstacles: [
+                { row: 3, col: 3, type: "pawn" } // d5
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 5/5: ใช้เรือขาวที่ช่อง b7 เดินอ้อมสิ่งกีดขวางไปกินคิงเป้าหมายที่ช่อง f2 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 1, col: 1 }, // b7
+              targetPos: { row: 6, col: 5, type: "king" }, // f2
+              obstacles: [
+                { row: 1, col: 5, type: "pawn" } // f7
+              ]
+            }
+          ]
+        },
+        {
+          id: "knight",
+          number: 3,
+          name: "ม้า (Knight)",
+          shortName: "ม้า",
+          icon: "♞",
+          pieceType: "knight",
+          ruleSummary: "เดินเป็นรูปตัว L (เดินตรง 2 ช่อง แล้วหักเลี้ยวตั้งฉากอีก 1 ช่อง) และมีความสามารถพิเศษคือกระโดดข้ามตัวหมากอื่นที่ขวางอยู่ได้",
+          puzzles: [
+            {
+              challengeDescription: "แบบที่ 1/5: ใช้ม้าขาวที่ช่อง b1 กระโดดข้ามแนวเบี้ยไปกินคิงเป้าหมายที่ช่อง e4 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 7, col: 1 }, // b1
+              targetPos: { row: 4, col: 4, type: "king" }, // e4
+              obstacles: [
+                { row: 6, col: 0, type: "pawn" }, // a2
+                { row: 6, col: 1, type: "pawn" }, // b2
+                { row: 6, col: 2, type: "pawn" }  // c2
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 2/5: ใช้ม้าขาวที่ช่อง g1 กระโดดข้ามแนวเบี้ยไปกินคิงเป้าหมายที่ช่อง d4 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 7, col: 6 }, // g1
+              targetPos: { row: 4, col: 3, type: "king" }, // d4
+              obstacles: [
+                { row: 6, col: 5, type: "pawn" }, // f2
+                { row: 6, col: 6, type: "pawn" }, // g2
+                { row: 6, col: 7, type: "pawn" }  // h2
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 3/5: ใช้ม้าขาวที่ช่อง b8 กระโดดข้ามสิ่งกีดขวางไปกินคิงเป้าหมายที่ช่อง e5 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 0, col: 1 }, // b8
+              targetPos: { row: 3, col: 4, type: "king" }, // e5
+              obstacles: [
+                { row: 1, col: 0, type: "pawn" }, // a7
+                { row: 1, col: 1, type: "pawn" }, // b7
+                { row: 1, col: 2, type: "pawn" }  // c7
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 4/5: ใช้ม้าขาวที่ช่อง a1 กระโดดเป็นรูปตัว L ไปกินคิงเป้าหมายที่ช่อง d4 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 7, col: 0 }, // a1
+              targetPos: { row: 4, col: 3, type: "king" }, // d4
+              obstacles: [
+                { row: 6, col: 0, type: "pawn" }, // a2
+                { row: 6, col: 1, type: "pawn" }  // b2
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 5/5: ใช้ม้าขาวที่ช่อง d4 กระโดดข้ามแนวป้องกันไปกินคิงเป้าหมายที่ช่อง e7 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 4, col: 3 }, // d4
+              targetPos: { row: 1, col: 4, type: "king" }, // e7
+              obstacles: [
+                { row: 3, col: 2, type: "pawn" }, // c5
+                { row: 3, col: 3, type: "pawn" }, // d5
+                { row: 3, col: 4, type: "pawn" }  // e5
+              ]
+            }
+          ]
+        },
+        {
+          id: "bishop",
+          number: 4,
+          name: "บิชอป (Bishop)",
+          shortName: "บิชอป",
+          icon: "♝",
+          pieceType: "bishop",
+          ruleSummary: "เดินในแนวทแยงมุมได้ไกลหลายช่องตามสีของช่องที่ตัวเองยืนอยู่ แต่ไม่สามารถกระโดดข้ามตัวหมากอื่นได้",
+          puzzles: [
+            {
+              challengeDescription: "แบบที่ 1/5: ใช้บิชอปขาวที่ช่อง c1 เดินทแยงมุมไปกินคิงเป้าหมายที่ช่อง c5 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 7, col: 2 }, // c1
+              targetPos: { row: 3, col: 2, type: "king" }, // c5
+              obstacles: [
+                { row: 6, col: 1, type: "pawn" } // b2
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 2/5: ใช้บิชอปขาวที่ช่อง f1 เดินทแยงมุมไปกินคิงเป้าหมายที่ช่อง f5 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 7, col: 5 }, // f1
+              targetPos: { row: 3, col: 5, type: "king" }, // f5
+              obstacles: [
+                { row: 6, col: 6, type: "pawn" } // g2
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 3/5: ใช้บิชอปขาวที่ช่อง b2 เดินทแยงมุมอ้อมสิ่งกีดขวางไปกินคิงเป้าหมายที่ช่อง f4 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 6, col: 1 }, // b2
+              targetPos: { row: 4, col: 5, type: "king" }, // f4
+              obstacles: [
+                { row: 5, col: 2, type: "pawn" } // c3
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 4/5: ใช้บิชอปขาวที่ช่อง g2 เดินทแยงมุมอ้อมสิ่งกีดขวางไปกินคิงเป้าหมายที่ช่อง c4 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 6, col: 6 }, // g2
+              targetPos: { row: 4, col: 2, type: "king" }, // c4
+              obstacles: [
+                { row: 5, col: 5, type: "pawn" } // f3
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 5/5: ใช้บิชอปขาวที่ช่อง a3 เดินทแยงมุมไปกินคิงเป้าหมายที่ช่อง g5 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 5, col: 0 }, // a3
+              targetPos: { row: 3, col: 6, type: "king" }, // g5
+              obstacles: [
+                { row: 3, col: 2, type: "pawn" } // c5
+              ]
+            }
+          ]
+        },
+        {
+          id: "queen",
+          number: 5,
+          name: "ควีน (Queen)",
+          shortName: "ควีน",
+          icon: "♛",
+          pieceType: "queen",
+          ruleSummary: "เดินได้ทั้งแนวตรง (ตั้ง/นอน) และแนวทแยงมุมได้หลายช่อง รวมความสามารถของเรือและบิชอปไว้ในตัวเดียว แต่กระโดดข้ามตัวหมากอื่นไม่ได้",
+          puzzles: [
+            {
+              challengeDescription: "แบบที่ 1/5: ใช้ควีนขาวที่ช่อง d1 ผสานการเดินเพื่อกินคิงเป้าหมายที่ช่อง b7 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 7, col: 3 }, // d1
+              targetPos: { row: 1, col: 1, type: "king" }, // b7
+              obstacles: [
+                { row: 5, col: 3, type: "pawn" }, // d3
+                { row: 7, col: 1, type: "pawn" }, // b1
+                { row: 5, col: 1, type: "pawn" }  // b3
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 2/5: ใช้ควีนขาวที่ช่อง a1 ผสานการเดินแนวตรงและทแยงไปกินคิงเป้าหมายที่ช่อง g6 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 7, col: 0 }, // a1
+              targetPos: { row: 2, col: 6, type: "king" }, // g6
+              obstacles: [
+                { row: 2, col: 0, type: "pawn" }, // a6
+                { row: 7, col: 6, type: "pawn" }, // g1
+                { row: 5, col: 2, type: "pawn" }  // c3
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 3/5: ใช้ควีนขาวที่ช่อง h1 ผสานการเดินแนวตรงและทแยงไปกินคิงเป้าหมายที่ช่อง b6 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 7, col: 7 }, // h1
+              targetPos: { row: 2, col: 1, type: "king" }, // b6
+              obstacles: [
+                { row: 2, col: 7, type: "pawn" }, // h6
+                { row: 7, col: 1, type: "pawn" }, // b1
+                { row: 5, col: 5, type: "pawn" }  // f3
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 4/5: ใช้ควีนขาวที่ช่อง e1 ผสานการเดินแนวตรงและทแยงไปกินคิงเป้าหมายที่ช่อง a6 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 7, col: 4 }, // e1
+              targetPos: { row: 2, col: 0, type: "king" }, // a6
+              obstacles: [
+                { row: 2, col: 4, type: "pawn" }, // e6
+                { row: 7, col: 0, type: "pawn" }, // a1
+                { row: 5, col: 2, type: "pawn" }  // c3
+              ]
+            },
+            {
+              challengeDescription: "แบบที่ 5/5: ใช้ควีนขาวที่ช่อง c1 ผสานการเดินแนวตรงและทแยงไปกินคิงเป้าหมายที่ช่อง h7 ภายใน 2 ตาเดิน",
+              maxMoves: 2,
+              playerStart: { row: 7, col: 2 }, // c1
+              targetPos: { row: 1, col: 7, type: "king" }, // h7
+              obstacles: [
+                { row: 1, col: 2, type: "pawn" }, // c7
+                { row: 7, col: 7, type: "pawn" }, // h1
+                { row: 5, col: 4, type: "pawn" }  // e3
+              ]
+            }
+          ]
+        }
+      ];
+
+      const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
+
+      // Application State
+      let currentLessonIndex = 0;
+      let currentPuzzleIndex = 0;
+      const lastPuzzleByLesson = {};
+      let completedLessons = new Set();
+      let playerPos = { row: 0, col: 0 };
+      let targetPos = null;
+      let obstacles = [];
+      let movesLeft = 0;
+      let selectedSquare = null;
+      let legalMoves = [];
+      let lastMove = null;
+      let stageState = "playing"; // "playing" | "won" | "lost"
+
+      // DOM Elements
+      const lessonMenuEl = document.getElementById("lessonMenu");
+      const lessonStageBadgeEl = document.getElementById("lessonStageBadge");
+      const lessonTitleEl = document.getElementById("lessonTitle");
+      const lessonRuleTextEl = document.getElementById("lessonRuleText");
+      const lessonChallengeTextEl = document.getElementById("lessonChallengeText");
+      const currentStageStatEl = document.getElementById("currentStageStat");
+      const movesRemainingStatEl = document.getElementById("movesRemainingStat");
+      const feedbackBannerEl = document.getElementById("feedbackBanner");
+      const feedbackMessageEl = document.getElementById("feedbackMessage");
+      const feedbackActionsEl = document.getElementById("feedbackActions");
+      const chessboardEl = document.getElementById("chessboard");
+
+      function toAlgebraic(row, col) {
+        return FILES[col] + (8 - row);
+      }
+
+      function isInsideBoard(row, col) {
+        return row >= 0 && row < 8 && col >= 0 && col < 8;
+      }
+
+      function hasObstacleAt(row, col) {
+        return obstacles.some((obs) => obs.row === row && obs.col === col);
+      }
+
+      function isTargetAt(row, col) {
+        return targetPos && targetPos.row === row && targetPos.col === col;
+      }
+
+      // Compute all legal moves for the player's active piece at (row, col)
+      function getLegalMovesForPiece(pieceType, row, col) {
+        const moves = [];
+
+        if (pieceType === "pawn") {
+          // White pawn moves upward (row decreases)
+          const oneStepRow = row - 1;
+          if (isInsideBoard(oneStepRow, col) && !hasObstacleAt(oneStepRow, col) && !isTargetAt(oneStepRow, col)) {
+            moves.push({ row: oneStepRow, col, isCapture: false });
+
+            // 2 squares forward when on starting rank (row 6 = rank 2)
+            const twoStepRow = row - 2;
+            if (row === 6 && isInsideBoard(twoStepRow, col) && !hasObstacleAt(twoStepRow, col) && !isTargetAt(twoStepRow, col)) {
+              moves.push({ row: twoStepRow, col, isCapture: false });
+            }
+          }
+
+          // Diagonal captures (up-left and up-right)
+          const diagCols = [col - 1, col + 1];
+          for (const dCol of diagCols) {
+            if (isInsideBoard(oneStepRow, dCol) && isTargetAt(oneStepRow, dCol)) {
+              moves.push({ row: oneStepRow, col: dCol, isCapture: true });
+            }
+          }
+        } else if (pieceType === "knight") {
+          const jumps = [
+            [-2, -1], [-2, 1],
+            [-1, -2], [-1, 2],
+            [1, -2],  [1, 2],
+            [2, -1],  [2, 1]
+          ];
+          for (const [dr, dc] of jumps) {
+            const nr = row + dr;
+            const nc = col + dc;
+            if (!isInsideBoard(nr, nc) || hasObstacleAt(nr, nc)) continue;
+            moves.push({
+              row: nr,
+              col: nc,
+              isCapture: isTargetAt(nr, nc)
+            });
+          }
+        } else {
+          // Sliding pieces: Rook, Bishop, Queen
+          const directions = [];
+          if (pieceType === "rook" || pieceType === "queen") {
+            directions.push([-1, 0], [1, 0], [0, -1], [0, 1]);
+          }
+          if (pieceType === "bishop" || pieceType === "queen") {
+            directions.push([-1, -1], [-1, 1], [1, -1], [1, 1]);
+          }
+
+          for (const [dr, dc] of directions) {
+            let nr = row + dr;
+            let nc = col + dc;
+            while (isInsideBoard(nr, nc)) {
+              if (hasObstacleAt(nr, nc)) {
+                // Friendly blocker stops sliding
+                break;
+              }
+              if (isTargetAt(nr, nc)) {
+                moves.push({ row: nr, col: nc, isCapture: true });
+                break;
+              }
+              moves.push({ row: nr, col: nc, isCapture: false });
+              nr += dr;
+              nc += dc;
+            }
+          }
+        }
+
+        return moves;
+      }
+
+      function pickRandomPuzzleIndex(lessonIdx) {
+        const count = LESSONS[lessonIdx].puzzles.length;
+        const prev = lastPuzzleByLesson[lessonIdx];
+        if (count <= 1) return 0;
+        let candidates = [];
+        for (let i = 0; i < count; i++) {
+          if (i !== prev) candidates.push(i);
+        }
+        const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+        lastPuzzleByLesson[lessonIdx] = chosen;
+        return chosen;
+      }
+
+      // Initialize or reset a lesson stage (randomize = true picks one of the 5 variations)
+      function loadLesson(index, randomize = true) {
+        currentLessonIndex = index;
+        const lesson = LESSONS[currentLessonIndex];
+
+        if (randomize || typeof lastPuzzleByLesson[index] !== "number") {
+          currentPuzzleIndex = pickRandomPuzzleIndex(index);
+        } else {
+          currentPuzzleIndex = lastPuzzleByLesson[index];
+        }
+
+        const puzzle = lesson.puzzles[currentPuzzleIndex];
+
+        playerPos = { row: puzzle.playerStart.row, col: puzzle.playerStart.col };
+        targetPos = { ...puzzle.targetPos };
+        obstacles = puzzle.obstacles.map((o) => ({ ...o }));
+        movesLeft = puzzle.maxMoves;
+        stageState = "playing";
+        lastMove = null;
+
+        // Auto-select the player's piece at the start so legal moves helper is immediately visible,
+        // and also allow clicking the piece to toggle or inspect legal moves
+        selectedSquare = { row: playerPos.row, col: playerPos.col };
+        legalMoves = getLegalMovesForPiece(lesson.pieceType, playerPos.row, playerPos.col);
+
+        renderAll();
+      }
+
+      function handleSquareClick(row, col) {
+        const lesson = LESSONS[currentLessonIndex];
+
+        // If game is already won or lost, ignore board clicks until Retry / Next
+        if (stageState !== "playing") {
+          return;
+        }
+
+        // Did the user click on their own piece?
+        if (row === playerPos.row && col === playerPos.col) {
+          if (selectedSquare && selectedSquare.row === row && selectedSquare.col === col) {
+            selectedSquare = null;
+            legalMoves = [];
+          } else {
+            selectedSquare = { row, col };
+            legalMoves = getLegalMovesForPiece(lesson.pieceType, row, col);
+          }
+          renderBoard();
+          renderFeedback();
+          return;
+        }
+
+        // If the piece is selected, check if clicked square is a valid legal move
+        if (selectedSquare) {
+          const matchedMove = legalMoves.find((m) => m.row === row && m.col === col);
+          if (matchedMove) {
+            executePlayerMove(matchedMove);
+            return;
+          }
+        }
+
+        // Clicked an invalid square while piece was selected
+        selectedSquare = { row: playerPos.row, col: playerPos.col };
+        legalMoves = getLegalMovesForPiece(lesson.pieceType, playerPos.row, playerPos.col);
+        renderBoard();
+        feedbackMessageEl.textContent = `ช่อง ${toAlgebraic(row, col)} ไม่ใช่ตาเดินที่ถูกต้องของ${lesson.shortName} โปรดเลือกช่องที่มีจุดสีน้ำเงินหรือวงแหวนสีแดง`;
+      }
+
+      function executePlayerMove(move) {
+        const lesson = LESSONS[currentLessonIndex];
+        lastMove = {
+          from: { row: playerPos.row, col: playerPos.col },
+          to: { row: move.row, col: move.col }
+        };
+
+        playerPos = { row: move.row, col: move.col };
+        movesLeft -= 1;
+
+        if (move.isCapture) {
+          // Player captured the target within the move limit!
+          targetPos = null;
+          stageState = "won";
+          completedLessons.add(lesson.id);
+          selectedSquare = null;
+          legalMoves = [];
+        } else if (movesLeft <= 0) {
+          // Out of moves without capturing target
+          stageState = "lost";
+          selectedSquare = null;
+          legalMoves = [];
+        } else {
+          // Still playing: keep piece selected and show updated legal moves from new square
+          selectedSquare = { row: playerPos.row, col: playerPos.col };
+          legalMoves = getLegalMovesForPiece(lesson.pieceType, playerPos.row, playerPos.col);
+
+          // Check if pawn has any legal moves left (e.g. if pawn got stuck or passed target)
+          if (legalMoves.length === 0) {
+            stageState = "lost";
+            selectedSquare = null;
+          }
+        }
+
+        renderAll();
+      }
+
+      function renderLessonMenu() {
+        lessonMenuEl.innerHTML = "";
+        LESSONS.forEach((lesson, idx) => {
+          const isActive = idx === currentLessonIndex;
+          const isDone = completedLessons.has(lesson.id);
+
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "lesson-btn" + (isActive ? " active" : "");
+          btn.setAttribute("role", "tab");
+          btn.setAttribute("aria-selected", isActive ? "true" : "false");
+
+          btn.innerHTML = `
+            <span class="lesson-piece-icon" aria-hidden="true">${lesson.icon}</span>
+            <span class="lesson-btn-info">
+              <span class="lesson-btn-title">${lesson.number}. ${lesson.name}</span>
+              <span class="lesson-btn-desc">มีโจทย์สุ่ม ${lesson.puzzles.length} แบบ</span>
+            </span>
+            <span class="lesson-state-pill ${isDone ? "done" : ""}">
+              ${isDone ? "ผ่านแล้ว" : "ฝึกหัด"}
+            </span>
+          `;
+
+          btn.addEventListener("click", () => {
+            loadLesson(idx, true);
+          });
+
+          lessonMenuEl.appendChild(btn);
+        });
+      }
+
+      function renderLessonDetails() {
+        const lesson = LESSONS[currentLessonIndex];
+        const puzzle = lesson.puzzles[currentPuzzleIndex];
+        lessonStageBadgeEl.textContent = `ด่านที่ ${lesson.number} / ${LESSONS.length} • โจทย์สุ่มแบบที่ ${currentPuzzleIndex + 1}/${lesson.puzzles.length}`;
+        lessonTitleEl.textContent = `${lesson.number}. ${lesson.name}`;
+        lessonRuleTextEl.textContent = lesson.ruleSummary;
+        lessonChallengeTextEl.textContent = puzzle.challengeDescription;
+
+        currentStageStatEl.textContent = `${lesson.number} / ${LESSONS.length} (${lesson.shortName} #${currentPuzzleIndex + 1})`;
+        movesRemainingStatEl.textContent = `${movesLeft} ตา`;
+        movesRemainingStatEl.className =
+          "stat-value " + (movesLeft <= 1 && stageState === "playing" ? "low-moves" : "highlight-moves");
+      }
+
+      function renderFeedback() {
+        const lesson = LESSONS[currentLessonIndex];
+        feedbackBannerEl.className = "feedback-banner status-" + stageState;
+        feedbackActionsEl.innerHTML = "";
+
+        if (stageState === "won") {
+          const hasNext = currentLessonIndex < LESSONS.length - 1;
+          feedbackMessageEl.textContent = hasNext
+            ? `ยินดีด้วย! คุณใช้${lesson.shortName}พิชิตคิงเป้าหมายสำเร็จภายในตาเดินที่กำหนด`
+            : `ยอดเยี่ยม! คุณใช้${lesson.shortName}พิชิตคิงเป้าหมายสำเร็จแล้ว`;
+
+          const randomBtn = document.createElement("button");
+          randomBtn.type = "button";
+          randomBtn.className = "btn btn-secondary";
+          randomBtn.textContent = "สุ่มโจทย์อื่นในด่านนี้";
+          randomBtn.addEventListener("click", () => loadLesson(currentLessonIndex, true));
+          feedbackActionsEl.appendChild(randomBtn);
+
+          if (hasNext) {
+            const nextBtn = document.createElement("button");
+            nextBtn.type = "button";
+            nextBtn.className = "btn btn-success";
+            nextBtn.textContent = "ด่านถัดไป →";
+            nextBtn.addEventListener("click", () => loadLesson(currentLessonIndex + 1, true));
+            feedbackActionsEl.appendChild(nextBtn);
+          } else {
+            const restartAllBtn = document.createElement("button");
+            restartAllBtn.type = "button";
+            restartAllBtn.className = "btn btn-primary";
+            restartAllBtn.textContent = "กลับไปด่านที่ 1";
+            restartAllBtn.addEventListener("click", () => loadLesson(0, true));
+            feedbackActionsEl.appendChild(restartAllBtn);
+          }
+        } else if (stageState === "lost") {
+          feedbackMessageEl.textContent =
+            movesLeft <= 0
+              ? `หมดโควตาตาเดินแล้ว! ยังไม่สามารถกินคิงเป้าหมายได้ ลองวางแผนเส้นทางใหม่อีกครั้ง`
+              : `ไม่มีตาเดินที่สามารถไปต่อได้จากช่องนี้ ลองเริ่มใหม่อีกครั้ง`;
+
+          const retryBtn = document.createElement("button");
+          retryBtn.type = "button";
+          retryBtn.className = "btn btn-primary";
+          retryBtn.textContent = "ลองใหม่ (Retry)";
+          retryBtn.addEventListener("click", () => loadLesson(currentLessonIndex, false));
+          feedbackActionsEl.appendChild(retryBtn);
+
+          const randomBtn = document.createElement("button");
+          randomBtn.type = "button";
+          randomBtn.className = "btn btn-secondary";
+          randomBtn.textContent = "สุ่มโจทย์ใหม่";
+          randomBtn.addEventListener("click", () => loadLesson(currentLessonIndex, true));
+          feedbackActionsEl.appendChild(randomBtn);
+        } else {
+          // Playing state
+          if (selectedSquare) {
+            feedbackMessageEl.textContent = `เลือก${lesson.shortName}ที่ช่อง ${toAlgebraic(playerPos.row, playerPos.col)} แล้ว — คลิกช่องที่มีจุดสีน้ำเงินเพื่อเดิน หรือวงแหวนสีแดงเพื่อกินคิงเป้าหมาย`;
+          } else {
+            feedbackMessageEl.textContent = `คลิกที่${lesson.shortName}สีขาวของคุณที่ช่อง ${toAlgebraic(playerPos.row, playerPos.col)} เพื่อแสดงช่องที่เดินไปได้`;
+          }
+
+          const retryBtn = document.createElement("button");
+          retryBtn.type = "button";
+          retryBtn.className = "btn btn-secondary";
+          retryBtn.textContent = "เริ่มใหม่ (Retry)";
+          retryBtn.addEventListener("click", () => loadLesson(currentLessonIndex, false));
+          feedbackActionsEl.appendChild(retryBtn);
+
+          const randomBtn = document.createElement("button");
+          randomBtn.type = "button";
+          randomBtn.className = "btn btn-secondary";
+          randomBtn.textContent = "สุ่มโจทย์ใหม่";
+          randomBtn.addEventListener("click", () => loadLesson(currentLessonIndex, true));
+          feedbackActionsEl.appendChild(randomBtn);
+        }
+      }
+
+      function renderBoard() {
+        const lesson = LESSONS[currentLessonIndex];
+        chessboardEl.innerHTML = "";
+
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const isLight = (r + c) % 2 === 0;
+            const sqName = toAlgebraic(r, c);
+            const sqBtn = document.createElement("button");
+            sqBtn.type = "button";
+            sqBtn.className = "square " + (isLight ? "light" : "dark");
+            sqBtn.setAttribute("role", "gridcell");
+
+            const isSelected = selectedSquare && selectedSquare.row === r && selectedSquare.col === c;
+            const legalMove = legalMoves.find((m) => m.row === r && m.col === c);
+            const isLastMove =
+              lastMove &&
+              ((lastMove.from.row === r && lastMove.from.col === c) ||
+                (lastMove.to.row === r && lastMove.to.col === c));
+
+            if (isLastMove) {
+              sqBtn.classList.add("last-move");
+            }
+            if (isSelected) {
+              sqBtn.classList.add("selected");
+            }
+            if (legalMove) {
+              sqBtn.classList.add("legal-move");
+            }
+
+            // Rank label on left edge (col 0)
+            if (c === 0) {
+              const rankSpan = document.createElement("span");
+              rankSpan.className = "coord-rank";
+              rankSpan.textContent = String(8 - r);
+              sqBtn.appendChild(rankSpan);
+            }
+
+            // File label on bottom edge (row 7)
+            if (r === 7) {
+              const fileSpan = document.createElement("span");
+              fileSpan.className = "coord-file";
+              fileSpan.textContent = FILES[c];
+              sqBtn.appendChild(fileSpan);
+            }
+
+            // Render Player's White Piece
+            const isPlayerHere = playerPos.row === r && playerPos.col === c;
+            const isTargetHere = isTargetAt(r, c);
+            const obstacleHere = obstacles.find((o) => o.row === r && o.col === c);
+
+            let ariaDesc = `ช่อง ${sqName}`;
+
+            if (isPlayerHere) {
+              const pieceDiv = document.createElement("div");
+              pieceDiv.className = "piece";
+              pieceDiv.innerHTML = PIECE_SVGS[lesson.pieceType]("#ffffff", "#0f172a");
+              sqBtn.appendChild(pieceDiv);
+              ariaDesc += ` มี${lesson.name}สีขาวของคุณ`;
+            } else if (isTargetHere) {
+              const tagSpan = document.createElement("span");
+              tagSpan.className = "target-tag";
+              tagSpan.textContent = "เป้าหมาย";
+              sqBtn.appendChild(tagSpan);
+
+              const pieceDiv = document.createElement("div");
+              pieceDiv.className = "piece";
+              pieceDiv.innerHTML = PIECE_SVGS[targetPos.type]("#1e293b", "#0f172a");
+              sqBtn.appendChild(pieceDiv);
+              ariaDesc += " มีหมากเป้าหมายสีดำ";
+            } else if (obstacleHere) {
+              const pieceDiv = document.createElement("div");
+              pieceDiv.className = "piece";
+              pieceDiv.style.opacity = "0.72";
+              pieceDiv.innerHTML = PIECE_SVGS[obstacleHere.type]("#cbd5e1", "#475569");
+              sqBtn.appendChild(pieceDiv);
+              ariaDesc += " มีเบี้ยสิ่งกีดขวาง";
+            }
+
+            // Render Legal Move Helper (dot or capture ring)
+            if (legalMove) {
+              if (legalMove.isCapture) {
+                const ring = document.createElement("span");
+                ring.className = "capture-ring";
+                sqBtn.appendChild(ring);
+                ariaDesc += " (สามารถเดินมากินเป้าหมายได้)";
+              } else {
+                const dot = document.createElement("span");
+                dot.className = "legal-dot";
+                sqBtn.appendChild(dot);
+                ariaDesc += " (สามารถเดินมาช่องนี้ได้)";
+              }
+            }
+
+            sqBtn.setAttribute("aria-label", ariaDesc);
+            sqBtn.addEventListener("click", () => handleSquareClick(r, c));
+            chessboardEl.appendChild(sqBtn);
+          }
+        }
+      }
+
+      function renderAll() {
+        renderLessonMenu();
+        renderLessonDetails();
+        renderFeedback();
+        renderBoard();
+      }
+
+      // Start at Lesson 1 (Pawn)
+      loadLesson(0);
+    })();
+  </script>
+</body>
+</html>
